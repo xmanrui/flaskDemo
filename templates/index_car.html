@@ -1,0 +1,263 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>一石数字公共安全系统</title>
+<link href="static/css/style.css" rel="stylesheet" type="text/css" media="all" />
+<link rel="stylesheet"type="text/css" href="../static/css/custom.css">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script type="text/javascript" src="static/js/jquery.min.js"></script>
+<script src='static/highstock.js'></script>
+<script src='static/exporting.js'></script>
+<script src="../static/js/tool.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function($) {
+    $(".scroll").click(function(event){
+        event.preventDefault();
+        $('html,body').animate({scrollTop:$(this.hash).offset().top}, 1200);
+        });
+
+    });
+
+</script>
+
+</head>
+<body>
+<div class="header-top">
+	<div class="wrap">
+		<div class="logo">
+			<a href="#"><img src="static/images/logo.png" alt="yishi"></a>
+		</div>
+		<div class="clear"></div> 
+		<div class="top-nav">
+		<div class="dropdown" style="top: -15px;">
+                        <img class="setting" src="static/images/setting_out.png" alt="" style="height: 33px;width: 33px;">
+                        <div class="dropdown-content">
+                        <select class="src-video">
+                            <--!从后端传过来，动态生成其它选项-->
+                            <option>--请选择视频源--</option>
+                        </select><br><br>
+                        <button class="xstart">开始</button><br><br>
+                        <button class="xend">结束</button><br><br>
+                        <button class="xclear">清除</button><br><br>
+                        <br>
+                        <a class="uploadvideo" href="{{ url_for('multi_upload') }}" target="_blank" >上传视频</a>
+                        <br><br>
+                        <hr>
+                        <br>
+                        <button class="poweroff">关闭电源</button><br><br>
+                        </div>
+                        </div>
+				<ul>
+					<li class="active"><a href="#about1" class="scroll">人群分析</a></li> |
+					<li><a href="#about2" class="scroll">车辆识别</a></li> |
+					<li><a href="#about3" class="scroll">车流分析</a></li> |
+                    <li><a href="#about4" class="scroll">场景分析</a></li>
+				</ul>
+
+		</div>
+	</div>
+</div>
+
+<div class="header-bottom" id="about1">
+     <div class="wrap">
+ 		<div class="intro">
+                <h2 class="title">人群分析</h2>
+                <h3 class="subtitle">人群分析是基于前端摄像头传感器数据，采用先进人体识别算法，即时计算区域内的人群数量和分布密度。</h3>
+        </div>
+ 		<div class="section group">
+                <div class="col_1_of_3 span_1_of_3">
+                   <img src="static/images/226.jpg" height="254" width="503" title="date" />
+                </div>
+              
+				<div class="col_1_of_3 span_1_of_3" >
+					<h3>场景输出指标：绝对数量( 216 )人 </h3>
+						  <div class="skills">
+                                <div style="width:85%"><p class="white">人群覆盖区域 ( 85% ) </p></div>
+                          </div>
+                           <div class="skills">
+                                <div style="width:65%"><p class="white">人群高密度比例 ( 65% )</p></div>
+                          </div>
+                           <div class="skills">
+                                <div style="width:72%"><p class="white">男性比例 ( 72% )</p></div>
+                          </div>
+                           <div class="skills">
+                                <div style="width:90%"><p class="white">低速静态人群占比 ( 90% )</p></div>
+                          </div>
+				</div>
+                
+				<div class="clear"></div>
+		</div>
+		
+         
+	</div>
+ </div>
+
+ <div class="about-top" id="about2">
+     <div class="wrap">
+ 		<div class="intro">
+                <h2 class="title">车辆识别</h2>
+                <h3 class="subtitle">利用普通摄像头，经过前端连续车辆抓拍，采用神经网络算法进行车辆型号识别和车牌号码识别，广泛用于道路交通和车库停车场管理。</h3>
+        </div>
+ 		<div class="section group">
+                <div class="col_1_of_3 span_1_of_3">
+                   <img src="static/images/227.jpg" height="291" width="462" title="date" />
+                </div>
+              
+				<div class="col_1_of_3 span_1_of_3" >
+                    <h3 class="subtitle"><font color="#999"> 车牌搜索: <input type="text" placeholder="请输入车牌号" name="platesnum"/></font></h3>
+					<h4>摄像头ID：1001 </h4>
+					<h4>识别时间：2016-11-09 17:30:52 </h4>
+                    <h4>车牌号码：川A NX139（蓝牌） </h4>
+                    <h4>车辆型号：上海大众 </h4>  
+                    <h4>本月经过摄像头次数：26 </h4> 
+				</div>
+                
+				<div class="clear"></div>
+		</div>
+		
+         
+	</div>
+ </div>
+ 
+ <div class="about-top" id="about3">
+     <div class="wrap">
+ 		<div class="intro">
+                <h2 class="title">车流分析</h2>
+                <h3 class="subtitle">通过道路、公路关口、高速休息区，城区主要街道摄像头采集设备，生成车辆数量和车辆车型，为道路交通提供准确的流量信息，指导交通梳理和车流评估工作。</h3>
+        </div>
+ 		<div class="section group">
+                <div class="col_1_of_3 span_1_of_3">
+                   <img src="static/images/228.jpg" height="295" width="569" title="date" />
+                </div>
+              
+				<div class="col_1_of_3 span_1_of_3" >
+					<h4>摄像头ID：1001 </h4>
+                    <h4>采集地址：成都益州大道天府一街路口 </h4>
+                    <h4>车道数量： 单向3车道</h4>
+					<h4>采集时间：2016-11-09 12:23:17 </h4>
+                    <h4>车流量：42辆/分钟 </h4>
+                    <h4>平均车速：30公里/小时 </h4>                     
+                    <h4>大型货车比例：30% </h4>                   
+				</div>
+                
+				<div class="clear"></div>
+		</div>
+        <div>
+            <p>当天累计车流量：9205</p>
+        </div>
+         
+	</div>
+ </div>
+ 
+ <div class="about-top" id="about4">
+     <div class="wrap">
+ 		<div class="intro">
+                <h2 class="title">场景分析</h2>
+                <h3 class="subtitle">通过采集图像，对场所人、车进行综合成分分析，评估出该场景复杂程度，指导相关安全防范和交通梳理工作。</h3>
+        </div>
+ 		<div class="section group">
+                <div class="col_1_of_3 span_1_of_3">
+                   <img src="static/images/229.jpg" height="335" width="578" title="date" />
+                </div>
+              
+				<div class="col_1_of_3 span_1_of_3" >
+					<h4>摄像头ID：1001 </h4>
+                    <h4>采集地址：成都火车站 </h4>
+					<h4>采集时间：2016-11-09 17:30:52 </h4>
+                    <h4>小型车辆数量：16 </h4>
+                    <h4>大型车辆数量：5 </h4>
+                    <h4>摩托车自行车数量：9 </h4>
+                    <h4>行人数量：12 </h4>  
+                    <h4>车人密度占空比：61% </h4>
+                    <h4>场景复杂程度：B级，需要交通指挥引导 </h4>                 
+				</div>
+                
+				<div class="clear"></div>
+		</div>
+		
+         
+	</div>
+ </div>
+ 
+ <div class="footer-bottom">
+ 	<div class="wrap">
+ 		<div class="copy">
+			<p>Copyright &copy; 2017.YiShi Tech All rights reserved.<a target="_blank" href="#"></a></p>
+		</div>
+ 	</div>
+ </div>
+
+<script type="text/javascript">
+$(document).ready(function($) {
+
+    $(".xstart").click(function(){
+
+        var selectIndex = $(".src-video").get(0).selectedIndex;
+        if(selectIndex == 0)
+        {
+            alert("请选择视频源！");
+        }
+        else
+        {
+            var src_video = $(".src-video").find("option:selected").text();
+		    $.ajax({url:"/start_work", data:{"mydata": src_video},success:function(data){
+
+	        }});
+        }
+
+	});
+
+    $(".xend").click(function(){
+        var src_video = $(".src-video").find("option:selected").text();
+		$.ajax({url:"/end_work", data:{"mydata": src_video},success:function(data){
+
+		}});
+	});
+
+    $(".xclear").click(function(){
+        var src_video = $(".src-video").find("option:selected").text();
+		$.ajax({url:"/clear_work", data:{"mydata": src_video},success:function(data){
+
+		}});
+	});
+
+    $(".poweroff").click(function(){
+        var src_video = $(".src-video").find("option:selected").text();
+		$.ajax({url:"/poweroff" ,success:function(data){
+
+		}});
+	});
+
+
+    // 动态生成视频源选项
+    $(function(){
+    setInterval(function () {
+        var origin_opt = $.GetOptionTextArr(".src-video option");
+        var len = origin_opt.length;
+		$.ajax({url:"/get_video_src", data:{"mydata": origin_opt.toString()}, success:function(data){
+
+            $.each(data, function(i, field){
+                origin_opt = $.GetOptionTextArr(".src-video option");
+                if(!$.IsInArr(origin_opt, field))
+                {
+                    var option = $("<option>").val(len + i).text(field);
+                    $(".src-video").append(option);
+                }
+                else
+                {
+                    console.log("Has In: " + field);
+                }
+            });
+
+		}});
+    }, 3000);
+
+    });
+
+    });
+</script>
+
+</body>
+</html>

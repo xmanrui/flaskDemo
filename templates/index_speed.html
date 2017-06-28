@@ -1,0 +1,285 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>一石数字公共安全系统</title>
+<link href="static/css/style.css" rel="stylesheet" type="text/css" media="all" />
+<link rel="stylesheet"type="text/css" href="../static/css/custom.css">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script type="text/javascript" src="static/js/jquery.min.js"></script>
+<script src='static/highstock.js'></script>
+<script src='static/exporting.js'></script>
+<script src="../static/js/tool.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function($) {
+    $(".scroll").click(function(event){
+        event.preventDefault();
+        $('html,body').animate({scrollTop:$(this.hash).offset().top}, 1200);
+        });
+
+    });
+
+</script>
+
+<script>
+$(document).ready(function() {
+    Highcharts.setOptions({
+        global : {
+            useUTC : false
+        }
+    });
+
+
+    var showindex = 0;
+    $('#container').highcharts('StockChart', {
+        chart : {
+            events : {
+                load : function () {
+                    var series_data_1 = this.series[0];
+
+                    setInterval(function() {
+                        $.getJSON('/speed', {'showindex': showindex}, function(data) {
+{#                            $("#carspeed").text(data_1[0][1]);#}
+{#                            $("#carcount").text(data['count']);#}
+{#                            $("#cartype").text(data['type']);#}
+{#                            showindex = data['showindex'];#}
+                            $.each(data, function(i, d){
+                               series_data_1.addPoint(d['speed'], true, true);
+                                $("#carspeed").text(d['speed'][1]);
+                                $("#carcount").text(d['count']);
+                                showindex = d['showindex'];
+                            })
+                        });
+                    }, 2000)
+                }
+            }},
+
+            legend: {
+                enabled: true,
+                layout: 'vertical',
+                align: 'left',
+                verticalAlign: 'top',
+                backgroundColor: '#9AD600',
+                borderColor: '#9AD600',
+                borderWidth: 2,
+                shadow: true,
+                itemStyle: { "color": "#FFF", "cursor": "pointer", "fontSize": "16px", "fontWeight": "bold" }
+            },
+
+            rangeSelector: {
+                buttons: [{
+                    count: 1,
+                    type: 'minute',
+                    text: '1分钟'
+                }, {
+                    count: 5,
+                    type: 'minute',
+                    text: '5分钟'
+                }, {
+                    count: 1,
+                    type: 'hour',
+                    text: '1小时'
+                }, {
+                    count: 2,
+                    type: 'hour',
+                    text: '2小时'
+                }, {
+                    type: 'all',
+                    text: '全部'
+                }],
+                inputEnabled: true,
+                selected: 4
+            },
+
+            title : {
+                text : '车速'
+            },
+
+            xAxis: {
+                title: {
+                    text: '时间'
+                },
+                type: 'datetime',
+                tickPixelInterval: 50
+            },
+
+            yAxis: [{
+                title: {
+                    text: 'value'
+                },
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            }],
+
+            exporting: {
+                enabled: false
+            },
+
+            series : [{
+                name : '车速',
+                type: 'spline',
+                data: (function() {
+                    var data = [],
+                        time = (new Date()).getTime(),
+                        i;
+
+                    // 给曲线y值赋初值0
+                    for (i = -999; i <= 0; i++) {
+                        data.push({
+                            x: time + i * 1000,
+                            data_1: 0
+                        });
+                    }
+                    return data;
+                })()
+            }],
+            labels:{
+                items: {
+                    html: '',
+                    style: {
+	                    left: '400px',
+	                    top: '0px'
+                        }
+                }
+
+            }
+        }
+    );
+
+});
+</script>
+</head>
+<body>
+<div class="header-top">
+	<div class="wrap">
+		<div class="logo">
+			<a href="#"><img src="static/images/logo.png" alt="yishi"></a>
+		</div>
+		<div class="clear"></div>
+    </div>
+
+
+     <div class="about-top">
+    </div>
+
+    <div class="wrap">
+        <div class="dropdown">
+                        <img class="setting" src="static/images/setting_out.png" alt="">
+                        <div class="dropdown-content">
+                        <select class="src-video">
+                            <--!从后端传过来，动态生成其它选项-->
+                            <option>--请选择视频源--</option>
+                        </select><br><br>
+                        <button class="xstart">开始</button><br><br>
+                        <button class="xend">结束</button><br><br>
+                        <button class="xclear">清除</button><br><br>
+                        <br>
+                        <a class="uploadvideo" href="{{ url_for('multi_upload') }}" target="_blank" >上传视频</a>
+                        <br><br>
+                        <hr>
+                        <br>
+                        <button class="poweroff">关闭电源</button><br><br>
+                        </div>
+        </div>
+
+	</div>
+</div>		    
+
+ <div >
+     <div class="wrap">
+
+        <div id="container" style="height: 400px; width: 90%; min-width: 310px;"></div>
+        <div>
+            <p>车速：<span id="carspeed"></span></p>
+            <p>车流量：<span id="carcount"></span></p>
+        </div>
+        <br>
+        <br>
+        <div class="clear"></div>
+	</div>
+  </div>
+ 
+ <div class="footer-bottom">
+ 	<div class="wrap">
+ 		<div class="copy">
+			<p>Copyright &copy; 2017.YiShi Tech All rights reserved.<a target="_blank" href="#"></a></p>
+		</div>
+ 	</div>
+ </div>
+
+<script type="text/javascript">
+$(document).ready(function($) {
+
+    $(".xstart").click(function(){
+
+        var selectIndex = $(".src-video").get(0).selectedIndex;
+        if(selectIndex == 0)
+        {
+            alert("请选择视频源！");
+        }
+        else
+        {
+            var src_video = $(".src-video").find("option:selected").text();
+		    $.ajax({url:"/start_work", data:{"mydata": src_video},success:function(data){
+
+	        }});
+        }
+
+	});
+
+    $(".xend").click(function(){
+        var src_video = $(".src-video").find("option:selected").text();
+		$.ajax({url:"/end_work", data:{"mydata": src_video},success:function(data){
+
+		}});
+	});
+
+    $(".xclear").click(function(){
+        var src_video = $(".src-video").find("option:selected").text();
+		$.ajax({url:"/clear_work", data:{"mydata": src_video},success:function(data){
+
+		}});
+	});
+
+    $(".poweroff").click(function(){
+        var src_video = $(".src-video").find("option:selected").text();
+		$.ajax({url:"/poweroff" ,success:function(data){
+
+		}});
+	});
+
+    // 动态生成视频源选项
+    $(function(){
+
+    setInterval(function () {
+        var origin_opt = $.GetOptionTextArr(".src-video option");
+        var len = origin_opt.length;
+		$.ajax({url:"/get_video_src", data:{"mydata": origin_opt.toString()}, success:function(data){
+
+            $.each(data, function(i, field){
+                origin_opt = $.GetOptionTextArr(".src-video option");
+                if(!$.IsInArr(origin_opt, field))
+                {
+                    var option = $("<option>").val(len + i).text(field);
+                    $(".src-video").append(option);
+                }
+                else
+                {
+                    console.log("Has In: " + field);
+                }
+            });
+
+		}});
+    }, 3000);
+
+    });
+
+    });
+</script>
+
+</body>
+</html>

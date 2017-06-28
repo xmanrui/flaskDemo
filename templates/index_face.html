@@ -1,0 +1,471 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>一石数字公共安全系统</title>
+<link href="static/css/style.css" rel="stylesheet" type="text/css" media="all" />
+<link rel="stylesheet"type="text/css" href="../static/css/custom.css">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script type="text/javascript" src="static/js/jquery.min.js"></script>
+<script src='static/highstock.js'></script>
+<script src='static/exporting.js'></script>
+<script src="../static/js/tool.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function($) {
+    $(".scroll").click(function(event){
+        event.preventDefault();
+        $('html,body').animate({scrollTop:$(this.hash).offset().top}, 1200);
+        });
+
+    });
+
+    function GetTagTrHtml(name, value){
+        var destImgs = value.destImgs;
+        var destImgsHtml = '';
+        for (var x in destImgs)
+        {
+             var imgHtml = '<div class="img">' +
+                    '<img src="' + destImgs[x].imgSrc + '"height="96" alt="">' +
+                    '<div class="desc">' + destImgs[x].confidence + '</div> \
+                    </div>';
+                    destImgsHtml = destImgsHtml + imgHtml;
+        }
+
+        var ulHtml = '<ul class="comment"> \
+							<li class="date"> \
+								<div class="value">' + name + '</div> \
+								<div class="arrow_date"></div> \
+							</li> \
+							<li class="comments_number"><a href="#' + name +  '" title="次数">' + value.destImgCount + '</a> \
+                                <div class="lb-overlay" id="' + name + '"> \
+							        <a href="Javascript:window.history.go(-1)" class="lb-close">x Close</a>' +
+                                     destImgsHtml +
+                                '</div> \
+                            </li> \
+                       </ul>';
+
+        var oneDestImgHtml = '<div class="grid_img"> \
+						        <a href="#' + name + 'sub"><img src="' + value.oneDestImg + '" alt="" /></a> \
+                               </div>';
+
+        var namelogHtml = '';
+        for (var x in value.nameLog)
+        {
+            var itemHtml = '<font color="green">Time:' + value.nameLog[x][0] + ' --- Addr:' + value.nameLog[x][1] + ' ---- C:' +
+                    value.nameLog[x][2] + '<br></font>';
+
+            namelogHtml = namelogHtml + itemHtml;
+        }
+
+        namelogHtml = '<div class="lb-overlay" id="' + name + 'sub"> \
+                        <a href="Javascript:window.history.go(-1)" class="lb-close">x Close</a>' +
+                        namelogHtml +
+                        '</div>';
+        var trainTimeHtml = value.trainTime;
+        var resultinfoHtml = '';
+        for (x in value.resultLog)
+        {
+            var itemHtml = '发现时间：' + value.resultLog[x][0] + ' 发现地址：' + value.resultLog[x][1] + ' 置信度：' + value.resultLog[x][2];
+            resultinfoHtml = resultinfoHtml + itemHtml;
+        }
+
+        resultinfoHtml = '<div class="feature-grid"> \
+                            <h3 id="'+ name + '">' + name + '照片输入时间：' + trainTimeHtml + ';管理员：Admin ;搜索记录如下：</h3><br>  \
+                            <p id="' + name + '">' +
+                                resultinfoHtml +
+                            '</p> \
+                          </div>';
+
+        var trHtml = '<tr> \
+                        <td height="125" align="left" valign="bottom">' +
+                           ulHtml + oneDestImgHtml + namelogHtml +
+                       '</td> \
+                        <td height="125" align="left">' +
+                           resultinfoHtml +
+                         '</td> \
+                        </tr> <br/>';
+
+        return trHtml;
+    }
+
+    function create_tableTagID(name)
+    {
+        var suffix = 'sectiongroupSub';
+        var id = name + suffix;
+
+        return id;
+    }
+
+    function createRecord(name, value){
+        var trHtml = GetTagTrHtml(name, value);
+        var tableID = create_tableTagID(name);
+        var tableHtml = '<table id="' + tableID + '">'  +
+                        trHtml +
+                    '</table>';
+        $("#sectiongroup").append(tableHtml);
+    }
+
+    function updateRecord(name, value){
+        var trHtml = GetTagTrHtml(name, value);
+        var tableID = 'table#' + create_tableTagID(name);
+
+        if($(tableID).length > 0)
+        {
+            $(tableID).empty();
+            $(tableID).append(trHtml);
+        }
+    }
+
+    function do_createRecord(){
+        $.getJSON('/updateRecoResultData', function(data){
+            $.each(data, function(name, value){
+                createRecord(name, value);
+            });
+        });
+    }
+
+    function do_create_update_record(){
+        $.getJSON('/updateRecoResultData', function(data){
+            $.each(data, function(name, value){
+                var tableID = 'table#' + create_tableTagID(name);
+                 if($(tableID).length > 0)
+                  {
+                    updateRecord(name, value)
+                  }
+                  else
+                  {
+                    createRecord(name, value);
+                  }
+            });
+         });
+    }
+
+    function createGuid()
+    {
+        var guid = "";
+        for (var i = 1; i <= 32; i++){
+            var n = Math.floor(Math.random()*16.0).toString(16);
+            guid += n;
+            if((i==8)||(i==12)||(i==16)||(i==20))
+            guid += "-";
+        }
+
+        return guid;
+    }
+
+    $(function(){
+        // do_createRecord();
+        var guid = createGuid();
+
+        setInterval(function(){
+            $.getJSON('/has_newRecord', {datakey: guid}, function(data){
+                console.log(data);
+                if(data == true)
+                {
+                    do_create_update_record();
+                }
+                else
+                {
+                    if($("#sectiongroup:has(table)").length == 0)
+                    {
+                        do_create_update_record();
+                    }
+                }
+            });
+
+
+        }, 5000);
+    });
+
+    $(function () {
+        setInterval(function () {
+            $.getJSON("/personscount", function (data) {
+                $("#personscount").text(data);
+            });
+        }, 2000);
+    });
+</script>
+
+<script>
+$(document).ready(function() {
+    Highcharts.setOptions({
+        global : {
+            useUTC : false
+        }
+    });
+
+    $('#container').highcharts('StockChart', {
+        chart : {
+            events : {
+                load : function () {
+                    var series_data_1 = this.series[0];
+
+                    setInterval(function() {
+                        $.getJSON('/facesdata', function(data) {
+                            var data_1 = data;
+                            $.each(data_1, function(i, d){
+                               series_data_1.addPoint(d, true, true)
+                            })
+                        });
+                    }, 2000)
+                }
+            }},
+
+            legend: {
+                enabled: true,
+                layout: 'vertical',
+                align: 'left',
+                verticalAlign: 'top',
+                backgroundColor: '#9AD600',
+                borderColor: '#9AD600',
+                borderWidth: 2,
+                shadow: true,
+                itemStyle: { "color": "#FFF", "cursor": "pointer", "fontSize": "16px", "fontWeight": "bold" }
+            },
+
+            rangeSelector: {
+                buttons: [{
+                    count: 1,
+                    type: 'minute',
+                    text: '1分钟'
+                }, {
+                    count: 5,
+                    type: 'minute',
+                    text: '5分钟'
+                }, {
+                    count: 1,
+                    type: 'hour',
+                    text: '1小时'
+                }, {
+                    count: 2,
+                    type: 'hour',
+                    text: '2小时'
+                }, {
+                    type: 'all',
+                    text: '全部'
+                }],
+                inputEnabled: true,
+                selected: 4
+            },
+
+            title : {
+                text : '入库人脸实时数据'
+            },
+
+            xAxis: {
+                title: {
+                    text: '时间'
+                },
+                type: 'datetime',
+                tickPixelInterval: 50
+            },
+
+            yAxis: [{
+                title: {
+                    text: 'value'
+                },
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            }],
+
+            exporting: {
+                enabled: true
+            },
+
+            series : [{
+                name : '入库人脸实时数据',
+                type: 'spline',
+                data: (function() {
+                    var data = [],
+                        time = (new Date()).getTime(),
+                        i;
+
+                    // 给曲线y值赋初值0
+                    for (i = -999; i <= 0; i++) {
+                        data.push({
+                            x: time + i * 1000,
+                            data_1: 0
+                        });
+                    }
+                    return data;
+                })()
+            }],
+            labels:{
+                items: {
+                    html: '',
+                    style: {
+	                    left: '400px',
+	                    top: '0px'
+                        }
+                }
+
+            }
+        }
+    );
+
+});
+</script>
+</head>
+<body>
+<div class="header-top">
+	<div class="wrap">
+		<div class="logo">
+			<a href="#"><img src="static/images/logo.png" alt="yishi"></a>
+		</div>
+		<div class="clear"></div>
+    </div>
+
+
+     <div class="about-top">
+    </div>
+
+    <div class="wrap">
+        <div class="dropdown">
+                        <img class="setting" src="static/images/setting_out.png" alt="">
+                        <div class="dropdown-content">
+                        <select class="src-video">
+                            <--!从后端传过来，动态生成其它选项-->
+                            <option>--请选择视频源--</option>
+                        </select><br><br>
+                        <button class="xstart">开始</button><br><br>
+                        <button class="xend">结束</button><br><br>
+                        <button class="xclear">清除</button><br><br>
+                        <br>
+                        <a class="uploadvideo" href="{{ url_for('multi_upload') }}" target="_blank" >上传视频</a>
+                        <br><br>
+                        <hr>
+                        <br>
+                        <button class="poweroff">关闭电源</button><br><br>
+                        </div>
+        </div>
+
+	</div>
+</div>		    
+	<div class="header-bottom">  
+		 <div class="wrap">
+            <div class="intro">
+                <h2 class="title">需要识别的人脸</h2>
+            </div>
+		    <div class="header-left" id="home">
+		      <section>
+                {% for name,imgpath in headerimg.items() %}
+                    <div class="img">
+                    <img src="{{imgpath}}" alt="{{name}}" height="120">
+                    <div class="desc">{{name}}</div>
+                    </div>
+                {% endfor %}
+                <div class="img">
+                    <a href="{{ url_for('upload') }}" target="_blank">
+					<img src="./static/images/addimg.jpg" alt="Add Person" height="120">
+					<div class="desc">AddPerson</div>
+                    </a>
+                </div>
+			</section>
+			<div class="clear"></div>
+        </div>
+     </div>
+ </div>       
+ <div class="about-top" id="about">
+     <div class="wrap">
+ 		<div class="intro">
+                <h2 class="title">识别结果</h2>
+                <h3 class="subtitle">识别结果根据前端传感器数据做实时结果更新，点击次数进入更多的识别画面。</h3>
+        </div>
+ 		
+        <div id="sectiongroup" class="section group">
+		</div>
+        
+        <div id="container" style="height: 400px; width: 90%; min-width: 310px;"></div>
+        <div>
+            <p>入库人脸总数量：<span id="personscount"></span></p>
+        </div>
+        <div class="clear"></div>
+	</div>
+  </div>
+	
+ </div>
+ 
+ <div class="footer-bottom">
+ 	<div class="wrap">
+ 		<div class="copy">
+			<p>Copyright &copy; 2017.YiShi Tech All rights reserved.<a target="_blank" href="#"></a></p>
+		</div>
+ 	</div>
+ </div>
+
+<script type="text/javascript">
+$(document).ready(function($) {
+
+    $(".xstart").click(function(){
+
+        var selectIndex = $(".src-video").get(0).selectedIndex;
+        if(selectIndex == 0)
+        {
+            alert("请选择视频源！");
+        }
+        else
+        {
+            var src_video = $(".src-video").find("option:selected").text();
+		    $.ajax({url:"/start_work", data:{"mydata": src_video},success:function(data){
+
+	        }});
+        }
+
+	});
+
+    $(".xend").click(function(){
+        var src_video = $(".src-video").find("option:selected").text();
+		$.ajax({url:"/end_work", data:{"mydata": src_video},success:function(data){
+
+		}});
+	});
+
+    $(".xclear").click(function(){
+        var src_video = $(".src-video").find("option:selected").text();
+		$.ajax({url:"/clear_work", data:{"mydata": src_video},success:function(data){
+
+		}});
+	});
+
+    $(".poweroff").click(function(){
+        var src_video = $(".src-video").find("option:selected").text();
+		$.ajax({url:"/poweroff" ,success:function(data){
+
+		}});
+	});
+
+    // 动态生成视频源选项
+    $(function(){
+
+    setInterval(function () {
+        var origin_opt = $.GetOptionTextArr(".src-video option");
+        var len = origin_opt.length;
+		$.ajax({url:"/get_video_src", data:{"mydata": origin_opt.toString()}, success:function(data){
+
+            $.each(data, function(i, field){
+                origin_opt = $.GetOptionTextArr(".src-video option");
+                if(!$.IsInArr(origin_opt, field))
+                {
+                    var option = $("<option>").val(len + i).text(field);
+                    $(".src-video").append(option);
+                }
+                else
+                {
+                    console.log("Has In: " + field);
+                }
+            });
+
+		}});
+    }, 3000);
+
+    });
+
+    });
+</script>
+
+</body>
+</html>

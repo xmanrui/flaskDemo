@@ -1,0 +1,571 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>一石数字公共安全系统</title>
+<link href="static/css/style.css" rel="stylesheet" type="text/css" media="all" />
+<link rel="stylesheet"type="text/css" href="../static/css/custom.css">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script type="text/javascript" src="static/js/jquery.min.js"></script>
+<script src='static/highstock.js'></script>
+<script src='static/exporting.js'></script>
+<script type="text/javascript">
+$(document).ready(function($) {
+    $(".scroll").click(function(event){
+        event.preventDefault();
+        $('html,body').animate({scrollTop:$(this.hash).offset().top}, 1200);
+        });
+
+    });
+
+    function GetTagTrHtml(name, value){
+        var destImgs = value.destImgs;
+        var destImgsHtml = '';
+        for (var x in destImgs)
+        {
+             var imgHtml = '<div class="img">' +
+                    '<img src="' + destImgs[x].imgSrc + '"height="96" alt="">' +
+                    '<div class="desc">' + destImgs[x].confidence + '</div> \
+                    </div>';
+                    destImgsHtml = destImgsHtml + imgHtml;
+        }
+
+        var ulHtml = '<ul class="comment"> \
+							<li class="date"> \
+								<div class="value">' + name + '</div> \
+								<div class="arrow_date"></div> \
+							</li> \
+							<li class="comments_number"><a href="#' + name +  '" title="次数">' + value.destImgCount + '</a> \
+                                <div class="lb-overlay" id="' + name + '"> \
+							        <a href="Javascript:window.history.go(-1)" class="lb-close">x Close</a>' +
+                                     destImgsHtml +
+                                '</div> \
+                            </li> \
+                       </ul>';
+
+        var oneDestImgHtml = '<div class="grid_img"> \
+						        <a href="#' + name + 'sub"><img src="' + value.oneDestImg + '" width="100" alt="" /></a> \
+                               </div>';
+
+        var namelogHtml = '';
+        for (var x in value.nameLog)
+        {
+            var itemHtml = '<font color="green">Time:' + value.nameLog[x][0] + ' --- Addr:' + value.nameLog[x][1] + ' ---- C:' +
+                    value.nameLog[x][2] + '<br></font>';
+
+            namelogHtml = namelogHtml + itemHtml;
+        }
+
+        namelogHtml = '<div class="lb-overlay" id="' + name + 'sub"> \
+                        <a href="Javascript:window.history.go(-1)" class="lb-close">x Close</a>' +
+                        namelogHtml +
+                        '</div>';
+        var trainTimeHtml = value.trainTime;
+        var resultinfoHtml = '';
+        for (x in value.resultLog)
+        {
+            var itemHtml = '发现时间：' + value.resultLog[x][0] + ' 发现地址：' + value.resultLog[x][1] + ' 置信度：' + value.resultLog[x][2];
+            resultinfoHtml = resultinfoHtml + itemHtml;
+        }
+
+        resultinfoHtml = '<div class="feature-grid"> \
+                            <h3 id="'+ name + '">' + name + '照片输入时间：' + trainTimeHtml + ';管理员：Admin ;搜索记录如下：</h3><br>  \
+                            <p id="' + name + '">' +
+                                resultinfoHtml +
+                            '</p> \
+                          </div>';
+
+        var trHtml = '<tr> \
+                        <td height="125" align="left" valign="bottom">' +
+                           ulHtml + oneDestImgHtml + namelogHtml +
+                       '</td> \
+                        <td height="125" align="left">' +
+                           resultinfoHtml +
+                         '</td> \
+                        </tr> <br/>';
+
+        return trHtml;
+    }
+
+    function create_tableTagID(name)
+    {
+        var suffix = 'sectiongroupSub';
+        var id = name + suffix;
+
+        return id;
+    }
+
+    function createRecord(name, value){
+        var trHtml = GetTagTrHtml(name, value);
+        var tableID = create_tableTagID(name);
+        var tableHtml = '<table id="' + tableID + '">'  +
+                        trHtml +
+                    '</table>';
+        $("#sectiongroup").append(tableHtml);
+    }
+
+    function updateRecord(name, value){
+        var trHtml = GetTagTrHtml(name, value);
+        var tableID = 'table#' + create_tableTagID(name);
+
+        if($(tableID).length > 0)
+        {
+            $(tableID).empty();
+            $(tableID).append(trHtml);
+        }
+    }
+
+    function do_createRecord(){
+        $.getJSON('/updateRecoResultData', function(data){
+            $.each(data, function(name, value){
+                createRecord(name, value);
+            });
+        });
+    }
+
+    function do_create_update_record(){
+        $.getJSON('/updateRecoResultData', function(data){
+            $.each(data, function(name, value){
+                var tableID = 'table#' + create_tableTagID(name);
+                 if($(tableID).length > 0)
+                  {
+                    updateRecord(name, value)
+                  }
+                  else
+                  {
+                    createRecord(name, value);
+                  }
+            });
+         });
+    }
+
+    function createGuid()
+    {
+        var guid = "";
+        for (var i = 1; i <= 32; i++){
+            var n = Math.floor(Math.random()*16.0).toString(16);
+            guid += n;
+            if((i==8)||(i==12)||(i==16)||(i==20))
+            guid += "-";
+        }
+
+        return guid;
+    }
+
+    $(function(){
+        // do_createRecord();
+        var guid = createGuid();
+
+        setInterval(function(){
+            $.getJSON('/has_newRecord', {datakey: guid}, function(data){
+                console.log(data);
+                if(data == true)
+                {
+                    do_create_update_record();
+                }
+                else
+                {
+                    if($("#sectiongroup:has(table)").length == 0)
+                    {
+                        do_create_update_record();
+                    }
+                }
+            });
+
+
+        }, 5000);
+    });
+
+    $(function () {
+        setInterval(function () {
+            $.getJSON("/personscount", function (data) {
+                $("#personscount").text(data);
+            });
+        }, 2000);
+    });
+</script>
+
+<script>
+$(document).ready(function() {
+    Highcharts.setOptions({
+        global : {
+            useUTC : false
+        }
+    });
+
+    $('#container').highcharts('StockChart', {
+        chart : {
+            events : {
+                load : function () {
+                    var series_data_1 = this.series[0];
+
+                    setInterval(function() {
+                        $.getJSON('/facesdata', function(data) {
+                            var data_1 = data;
+                            $.each(data_1, function(i, d){
+                               series_data_1.addPoint(d, true, true)
+                            })
+                        });
+                    }, 2000)
+                }
+            }},
+
+            legend: {
+                enabled: true,
+                layout: 'vertical',
+                align: 'left',
+                verticalAlign: 'top',
+                backgroundColor: '#9AD600',
+                borderColor: '#9AD600',
+                borderWidth: 2,
+                shadow: true,
+                itemStyle: { "color": "#FFF", "cursor": "pointer", "fontSize": "16px", "fontWeight": "bold" }
+            },
+
+            rangeSelector: {
+                buttons: [{
+                    count: 1,
+                    type: 'minute',
+                    text: '1分钟'
+                }, {
+                    count: 5,
+                    type: 'minute',
+                    text: '5分钟'
+                }, {
+                    count: 1,
+                    type: 'hour',
+                    text: '1小时'
+                }, {
+                    count: 2,
+                    type: 'hour',
+                    text: '2小时'
+                }, {
+                    type: 'all',
+                    text: '全部'
+                }],
+                inputEnabled: true,
+                selected: 4
+            },
+
+            title : {
+                text : '入库人脸实时数据'
+            },
+
+            xAxis: {
+                title: {
+                    text: '时间'
+                },
+                type: 'datetime',
+                tickPixelInterval: 50
+            },
+
+            yAxis: [{
+                title: {
+                    text: 'value'
+                },
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            }],
+
+            exporting: {
+                enabled: true
+            },
+
+            series : [{
+                name : '入库人脸实时数据',
+                type: 'spline',
+                data: (function() {
+                    var data = [],
+                        time = (new Date()).getTime(),
+                        i;
+
+                    // 给曲线y值赋初值0
+                    for (i = -999; i <= 0; i++) {
+                        data.push({
+                            x: time + i * 1000,
+                            data_1: 0
+                        });
+                    }
+                    return data;
+                })()
+            }],
+            labels:{
+                items: {
+                    html: '',
+                    style: {
+	                    left: '400px',
+	                    top: '0px'
+                        }
+                }
+
+            }
+        }
+    );
+
+});
+</script>
+</head>
+<body>
+<div class="header-top">
+	<div class="wrap">
+		<div class="logo">
+			<a href="#"><img src="static/images/logo.png" alt="yishi"></a>
+		</div>
+		<div class="clear"></div> 
+		<div class="top-nav">
+				<ul>
+					<li class="active"><a href="#home" class="scroll">人脸识别</a></li> |
+					<li><a href="#about1" class="scroll">人群分析</a></li> |
+					<li><a href="#about2" class="scroll">车辆识别</a></li> |
+					<li><a href="#about3" class="scroll">车流分析</a></li> |
+                    <li><a href="#about4" class="scroll">场景分析</a></li> |
+                    <li><div class="dropdown">
+                        <span>设置</span>
+                        <div class="dropdown-content">
+                        <select class="src-video">
+                            <--!从后端传过来，动态生成其它选项-->
+                            <option>--请选择视频源--</option>
+                        </select><br><br>
+                        <button class="xstart">开始</button><br><br>
+                        <button class="xend">结束</button>
+                        <hr>
+                        <button ><a href="{{ url_for('multi_upload') }}" target="_blank">上传视频</a></button>
+                        </div>
+                        </div>
+                    </li>
+				</ul>
+
+		</div>
+	</div>
+</div>		    
+	<div class="header-bottom">  
+		 <div class="wrap">
+            <div class="intro">
+                <h2 class="title">需要识别的人脸</h2>
+            </div>
+		    <div class="header-left" id="home">
+		      <section>
+                {% for name,imgpath in headerimg.items() %}
+                    <div class="img">
+                    <img src="{{imgpath}}" alt="{{name}}" height="120">
+                    <div class="desc">{{name}}</div>
+                    </div>
+                {% endfor %}
+                <div class="img">
+                    <a href="{{ url_for('upload') }}" target="_blank">
+					<img src="./static/images/addimg.jpg" alt="Add Person" height="120">
+					<div class="desc">AddPerson</div>
+                    </a>
+                </div>
+			</section>
+			<div class="clear"></div>
+        </div>
+     </div>
+ </div>       
+ <div class="about-top" id="about">
+     <div class="wrap">
+ 		<div class="intro">
+                <h2 class="title">识别结果</h2>
+                <h3 class="subtitle">识别结果根据前端传感器数据做实时结果更新，点击次数进入更多的识别画面。</h3>
+        </div>
+ 		
+        <div id="sectiongroup" class="section group">
+		</div>
+        
+        <div id="container" style="height: 400px; width: 90%; min-width: 310px;"></div>
+        <div>
+            <p>入库人脸总数量：<span id="personscount"></span></p>
+        </div>
+        <div class="clear"></div>
+	</div>
+  </div>
+	
+ </div>
+
+<div class="about-top" id="about1">
+     <div class="wrap">
+ 		<div class="intro">
+                <h2 class="title">人群分析</h2>
+                <h3 class="subtitle">人群分析是基于前端摄像头传感器数据，采用先进人体识别算法，即时计算区域内的人群数量和分布密度。</h3>
+        </div>
+ 		<div class="section group">
+                <div class="col_1_of_3 span_1_of_3">
+                   <img src="static/images/226.jpg" height="254" width="503" title="date" />
+                </div>
+              
+				<div class="col_1_of_3 span_1_of_3" >
+					<h3>场景输出指标：绝对数量( 216 )人 </h3>
+						  <div class="skills">
+                                <div style="width:85%"><p class="white">人群覆盖区域 ( 85% ) </p></div>
+                          </div>
+                           <div class="skills">
+                                <div style="width:65%"><p class="white">人群高密度比例 ( 65% )</p></div>
+                          </div>
+                           <div class="skills">
+                                <div style="width:72%"><p class="white">男性比例 ( 72% )</p></div>
+                          </div>
+                           <div class="skills">
+                                <div style="width:90%"><p class="white">低速静态人群占比 ( 90% )</p></div>
+                          </div>
+				</div>
+                
+				<div class="clear"></div>
+		</div>
+		
+         
+	</div>
+ </div>
+
+ <div class="about-top" id="about2">
+     <div class="wrap">
+ 		<div class="intro">
+                <h2 class="title">车辆识别</h2>
+                <h3 class="subtitle">利用普通摄像头，经过前端连续车辆抓拍，采用神经网络算法进行车辆型号识别和车牌号码识别，广泛用于道路交通和车库停车场管理。</h3>
+        </div>
+ 		<div class="section group">
+                <div class="col_1_of_3 span_1_of_3">
+                   <img src="static/images/227.jpg" height="291" width="462" title="date" />
+                </div>
+              
+				<div class="col_1_of_3 span_1_of_3" >
+                    <h3 class="subtitle"><font color="#999"> 车牌搜索: <input type="text" placeholder="请输入车牌号" name="platesnum"/></font></h3>
+					<h4>摄像头ID：1001 </h4>
+					<h4>识别时间：2016-11-09 17:30:52 </h4>
+                    <h4>车牌号码：川A NX139（蓝牌） </h4>
+                    <h4>车辆型号：上海大众 </h4>  
+                    <h4>本月经过摄像头次数：26 </h4> 
+				</div>
+                
+				<div class="clear"></div>
+		</div>
+		
+         
+	</div>
+ </div>
+ 
+ <div class="about-top" id="about3">
+     <div class="wrap">
+ 		<div class="intro">
+                <h2 class="title">车流分析</h2>
+                <h3 class="subtitle">通过道路、公路关口、高速休息区，城区主要街道摄像头采集设备，生成车辆数量和车辆车型，为道路交通提供准确的流量信息，指导交通梳理和车流评估工作。</h3>
+        </div>
+ 		<div class="section group">
+                <div class="col_1_of_3 span_1_of_3">
+                   <img src="static/images/228.jpg" height="295" width="569" title="date" />
+                </div>
+              
+				<div class="col_1_of_3 span_1_of_3" >
+					<h4>摄像头ID：1001 </h4>
+                    <h4>采集地址：成都益州大道天府一街路口 </h4>
+                    <h4>车道数量： 单向3车道</h4>
+					<h4>采集时间：2016-11-09 12:23:17 </h4>
+                    <h4>车流量：42辆/分钟 </h4>
+                    <h4>平均车速：30公里/小时 </h4>                     
+                    <h4>大型货车比例：30% </h4>                   
+				</div>
+                
+				<div class="clear"></div>
+		</div>
+        <div>
+            <p>当天累计车流量：9205</p>
+        </div>
+         
+	</div>
+ </div>
+ 
+ <div class="about-top" id="about4">
+     <div class="wrap">
+ 		<div class="intro">
+                <h2 class="title">场景分析</h2>
+                <h3 class="subtitle">通过采集图像，对场所人、车进行综合成分分析，评估出该场景复杂程度，指导相关安全防范和交通梳理工作。</h3>
+        </div>
+ 		<div class="section group">
+                <div class="col_1_of_3 span_1_of_3">
+                   <img src="static/images/229.jpg" height="335" width="578" title="date" />
+                </div>
+              
+				<div class="col_1_of_3 span_1_of_3" >
+					<h4>摄像头ID：1001 </h4>
+                    <h4>采集地址：成都火车站 </h4>
+					<h4>采集时间：2016-11-09 17:30:52 </h4>
+                    <h4>小型车辆数量：16 </h4>
+                    <h4>大型车辆数量：5 </h4>
+                    <h4>摩托车自行车数量：9 </h4>
+                    <h4>行人数量：12 </h4>  
+                    <h4>车人密度占空比：61% </h4>
+                    <h4>场景复杂程度：B级，需要交通指挥引导 </h4>                 
+				</div>
+                
+				<div class="clear"></div>
+		</div>
+		
+         
+	</div>
+ </div>
+ 
+ <div class="footer-bottom">
+ 	<div class="wrap">
+ 		<div class="copy">
+			<p>Copyright &copy; 2014.YiShi Tech All rights reserved.<a target="_blank" href="#"></a></p>
+		</div>
+ 	</div>
+ </div>
+
+<script type="text/javascript">
+$(document).ready(function($) {
+
+    $(".xstart").click(function(){
+
+        var selectIndex = $(".src-video").get(0).selectedIndex;
+        if(selectIndex == 0)
+        {
+            alert("请选择视频源！");
+        }
+        else
+        {
+            var src_video = $(".src-video").find("option:selected").text();
+		    $.ajax({url:"/start_work", data:{"mydata": src_video},success:function(data){
+
+	        }});
+        }
+
+	});
+
+    $(".xend").click(function(){
+        var src_video = $(".src-video").find("option:selected").text();
+		$.ajax({url:"/end_work", data:{"mydata": src_video},success:function(data){
+
+		}});
+	});
+
+    // 动态生成视频源选项
+    $(function(){
+    setInterval(function () {
+        var optObj = $(".src-video option");
+        var len = optObj.length;
+        var origin_opt = new Array();
+
+        optObj.each(function (i, field){
+                origin_opt[i] = $(this).text();
+                });
+
+		$.ajax({url:"/get_video_src", data:{"mydata": origin_opt.toString()}, success:function(data){
+
+            $.each(data, function(i, field){
+                var option = $("<option>").val(len + i).text(field);
+                $(".src-video").append(option);
+            });
+
+		}});
+    }, 3000);
+
+    });
+
+    });
+</script>
+
+</body>
+</html>

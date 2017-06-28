@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+	<title>上传视频</title>
+	<link href="../static/css/upload.css" rel="stylesheet" type="text/css" />
+	<link href="../static/css/custom.css" rel="stylesheet" type="text/css" />
+
+</head>
+<body class="pagebgc">
+	<script src="../static/js/jquery.min.js"></script>
+	<script src="../static/js/yupload.js"></script>
+	<br/><br/>
+     <div style="padding: 50px 50px 10px;">
+
+	<div id="mybox">
+	<a href="javascript:;" class="selfile">选择文件
+        <input type="file" name="" id="myfile">
+    </a>
+    </div>
+	<br/>
+	<div>
+		<ul id="nameList"></ul>
+	</div>
+	<br/>上传进度：<br/><br/>
+	<div class="progress" id="progress">
+	  <div class="progress-bar progress-bar-info progress-bar-striped" role="progressbar" id="progress-bar" style="width: 0%;">
+	    <span class="sr-only">0% Complete</span>
+	  </div>
+	</div><br/>
+	<input type="button" value="提交" id="upload-button" class="customBtn">
+	<br/>
+	<script type="text/javascript">
+
+        function BytesToMB_or_KB(size_in_Bytes) {
+            var afterChanged = 0;
+            if(size_in_Bytes <= 0){
+                afterChanged = "0 KB";
+            }else if (size_in_Bytes > 0 && size_in_Bytes < 1024 * 1024){
+                afterChanged = size_in_Bytes / 1024;
+                afterChanged = afterChanged.toFixed(2) + " KB";
+            }
+            else{
+                afterChanged = size_in_Bytes / 1024 / 1024;
+                afterChanged = afterChanged.toFixed(2) + " MB";
+            }
+
+            return afterChanged;
+        }
+
+        function ClearProgressBar() {
+            $('#progress-bar').width("0%").children(".sr-only").text("0% Complete");
+        }
+
+        function DisableSubmitButton(flag){
+            $("#upload-button").attr("disabled", flag);
+        }
+
+		$(function () {
+			var $progress = $('#progress-bar');
+			var $nameList = $('#nameList');
+			var filebox = $('#mybox').yupload({
+				btnText  	: '浏览' ,
+				maxSize 	: 1024*1024*100000	,//100000M
+				url 		: '/multi_upload',
+				fileojb: document.getElementById("myfile"),
+				onSelect	: function(list){
+					var htmlArr = [];
+					for(var i=0,len=list.length,item;i<len;i++){
+						item = list[i];
+						htmlArr.push('<li><span>'+item.name+'</span><span>'+BytesToMB_or_KB(item.size)+'</span></li>');
+					}
+					$nameList.html(htmlArr.join(''));
+					ClearProgressBar(); // 选择文件后进度条置零
+					DisableSubmitButton(false); // 选择文件后把“提交”按钮使能
+				},
+				onUpload	: function(p){
+					$progress.width(p+'%').children(".sr-only").text(p+"% Complete");
+
+					if(p == 100){ // 上传完成后把“提交”按钮使能
+					    DisableSubmitButton(false);
+					}
+				}
+			});
+
+			// Handle the submit button.
+		    $("#upload-button").on("click", function(e) {
+                if ($("#nameList li").length == 0)
+                {
+                    alert("请选择视频文件！");
+                    return;
+                }
+                ClearProgressBar(); // 提交前先把进度条置零
+		        filebox.submitUpload();
+		        DisableSubmitButton(true); // 点击“提交”后就把按钮置灰
+		    })
+		});
+    </script>
+    </div>
+
+</body>
+</html>
